@@ -1,12 +1,33 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
-import App from './App';
-import * as serviceWorker from './serviceWorker';
+import BarChart from './BarChart';
 
-ReactDOM.render(<App />, document.getElementById('root'));
+const Layout = () => {
+  // Dummy data to render with charts
+  const [data, setdata] = useState({
+    temperatures: (() => {
+      let temperatures = []
+      temperatures.push(50 + Math.random() * 40)
+      for (var i = 1; i < 50; i++) {
+        temperatures.push( temperatures[i-1] + (Math.random() - 0.5) * 10  )
+      }
+      return temperatures
+    })(),
+    dates: (() => {
+      let dates = [];
+      dates.push(new Date)
+      for (var i = 1; i < 50; i++) {
+        dates.push( new Date( dates[i-1].getTime() + (24 * 60 * 60 * 1000)) )
+      }
+      return dates;
+    })(),
+  })
 
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://bit.ly/CRA-PWA
-serviceWorker.unregister();
+  return ( 
+    <div id="charts">
+      <BarChart _id={"uniqueidentifier"} data={data}/>
+    </div> 
+  );
+}
+
+ReactDOM.render(<Layout />, document.getElementById('root'));
