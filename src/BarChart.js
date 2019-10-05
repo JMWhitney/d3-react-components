@@ -1,11 +1,12 @@
 import React, { useEffect } from 'react';
 import { scaleLinear, scaleTime, scaleBand } from 'd3-scale'
-import { select, selectAll, event } from 'd3-selection';
+import { select, selectAll, event, remove } from 'd3-selection';
 import { max } from 'd3-array';
 import { axisLeft, axisBottom } from 'd3-axis';
 import { timeDay } from 'd3-time';
-import { easeBounceOut } from 'd3-ease';
+import * as ease from 'd3-ease';
 import { transition } from 'd3-transition';
+import { zoom } from 'd3-zoom';
 import propTypes from 'prop-types';
 
 const drawChart = (d, _id) => {
@@ -47,7 +48,7 @@ const drawChart = (d, _id) => {
     .range([0, width]);
 
   xAxisTicks = axisBottom(xAxisValues)
-    .ticks(timeDay.every(1));
+    .ticks(timeDay.every(parseInt(d.dates.length / 5)));
   
   colors = scaleLinear()
     .domain([ 0, 60, max(d.temperatures) ])
@@ -60,6 +61,8 @@ const drawChart = (d, _id) => {
               .style('background', 'white')
               .style('opacity', 0);
   
+  select(`#${_id} svg`).remove(`#{_id} svg`);
+
   myChart = 
   select(`#${_id}`).append('svg')
     .attr('width', width + margin.left + margin.right)
@@ -115,10 +118,11 @@ const drawChart = (d, _id) => {
       return height - yScale(d);
     })
     .delay(function(d, i) {
-      return i * 20;
+      return i * 10;
     })
     .duration(1000)
-    .ease(easeBounceOut)
+    .ease(ease.easeBackOut)
+
   };
 
 function BarChart(props) {
