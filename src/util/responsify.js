@@ -6,9 +6,9 @@ export default function responsify(svg) {
   // we then measure the container
   // and find its aspect ratio
   const container = select(svg.node().parentNode),
-      width = parseInt(svg.style('width'), 10),
-      height = parseInt(svg.style('height'), 10),
-      aspect = width / height;
+      width = container.node().getBoundingClientRect().width,
+      height = container.node().getBoundingClientRect().height;
+      // aspect = width / height;
  
   // set viewBox attribute to the initial size
   // control scaling with preserveAspectRatio

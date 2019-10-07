@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
-import BarChart from './BarChart';
+// import BarChart from './BarChart';
 // import LineChart from './LineChart';
-// import PracticeChart from './PracticeChart';
+import PracticeChart from './PracticeChart';
 
 const randomValues = () => {
   return {
@@ -31,8 +31,8 @@ const Layout = () => {
 
   return ( 
     <div id="charts">
-      <div style={{display: "flex"}}>
-        <BarChart data={data} _id={"c"}/>
+      <div style={{display: "flex", minHeight: "500px"}}>
+        <PracticeChart data={data} _id={"c"}/>
       </div>
       <button onClick={() => setData(randomValues)}>New Values</button> 
     </div> 
