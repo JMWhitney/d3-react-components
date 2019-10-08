@@ -38,5 +38,6 @@ export default function responsify(svg) {
       const h = parseInt(container.style('height'))
       svg.attr('width', w);
       svg.attr('height', h);
+    
   }
 }

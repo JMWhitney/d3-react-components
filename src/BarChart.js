@@ -20,7 +20,7 @@ const drawChart = (d, _id) => {
     console.error(error);
   }
 
-  var svg = select(`#${_id}`).call(responsify),
+  var svg = select(`#${_id}`),
       margin = { top: 0, right: 0, bottom: 30, left: 20 },
       height = svg.node().getBoundingClientRect().height - margin.top - margin.bottom,
       width = svg.node().getBoundingClientRect().width - margin.left - margin.right,
@@ -80,9 +80,7 @@ const drawChart = (d, _id) => {
     .attr('width', width + margin.left + margin.right)
     .attr('height', height + margin.top + margin.bottom)
     .append('g')
-    .attr('transform', 
-            'translate(' + margin.left + ',' + margin.right + ')'
-          )
+    .attr('transform', 'translate(' + margin.left + ',' + margin.right + ')')
   .selectAll('rect').data(d.y)
     .enter().append('rect')
       .attr('fill', colors)
