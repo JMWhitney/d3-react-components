@@ -32,7 +32,7 @@ const Layout = () => {
   return ( 
     <div id="charts">
       <div style={{display: "flex", height: "50vh", width:"50vw"}}>
-        <Chart data={data} _id={"c"}/>
+        <Chart data={data} />
       </div>
       <button onClick={() => setData(randomValues)}>New Values</button> 
     </div> 

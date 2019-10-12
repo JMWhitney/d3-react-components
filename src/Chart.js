@@ -8,21 +8,22 @@ import {
   axisBottom,
   timeDay,
   scaleTime,
-  event 
+  event,
 } from 'd3';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import propTypes from 'prop-types';
-import responsivefy from './util/responsify';
 
-const renderChart = (data, id, forceUpdate) => {
+const renderChart = (svgRef, data, forceUpdate) => {
   try {
-    select(`#${id} g`).remove()
+    select(svgRef.firstChild).remove()
     selectAll(`.chart_tooltip`).remove()
   } 
   catch (error) {
     console.error(error)
   }
-  const svg = select(`#${id}`)//.call(responsivefy);
+
+  const svg = select(svgRef);
+  console.log(svgRef);
   let width = svg.node().getBoundingClientRect().width;
   let height = svg.node().getBoundingClientRect().height;
   const margin = { top: 20, right: 20, bottom: 30, left: 30 };
@@ -36,9 +37,10 @@ const renderChart = (data, id, forceUpdate) => {
     .paddingOuter(.05)
     .range([0, innerWidth]);
 
-  const xAxisValues = scaleTime()
-  .domain([ data.x[0], data.x[data.x.length - 1] ])
-  .range([0, width]);
+  const xAxisValues = 
+  scaleTime()
+    .domain([ data.x[0], data.x[data.x.length - 1] ])
+    .range([0, width]);
 
   const xAxis = 
   axisBottom(xAxisValues)
@@ -65,6 +67,7 @@ const renderChart = (data, id, forceUpdate) => {
   const entries = 
   container.selectAll('rect').data(data.y)
       .enter().append('rect')
+        .attr('class', 'data-entry')
         .attr('width', d => xScale.bandwidth())
         .attr('height', d => yScale(d))
         .attr('x', d => xScale(d))
@@ -94,21 +97,24 @@ const renderChart = (data, id, forceUpdate) => {
   container.append('g')
     .call(yAxis);
 
-  select(window).on(
-    'resize.' + id, 
-    forceUpdate
-  );
+  // select(svgRef).on(
+  //   'resize.' + , 
+  //   forceUpdate
+  // );
+
 }
-
+  
 const Chart = (props) => {
-
+  
   const [, updateState] = useState();
   const forceUpdate = () => updateState({});
+  const svgRef = useRef(null);
 
-  useEffect(() => renderChart(props.data, props._id, forceUpdate))
-
-  return <svg height="100%" width="100%" id={props._id}></svg>
+  console.log(props.data);
   
+  useEffect(() => renderChart(svgRef.current, props.data, props._id, forceUpdate))
+
+  return <svg className="svg-content-responsive" height="100%" width="100%" ref={svgRef}></svg>
 }
 
 Chart.propTypes = {
@@ -116,7 +122,6 @@ Chart.propTypes = {
     x: propTypes.array.isRequired,
     y: propTypes.array.isRequired
   }),
-  _id: propTypes.string.isRequired
 }
 
 export default Chart;
