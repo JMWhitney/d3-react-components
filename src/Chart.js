@@ -12,6 +12,7 @@ import {
 } from 'd3';
 import React, { useState, useLayoutEffect, useEffect, useRef } from 'react';
 import propTypes from 'prop-types';
+import debounce from './util/debounce';
 
 const renderChart = (svgRef, data) => {
   try {
@@ -102,6 +103,7 @@ const Chart = (props) => {
   
   const [, update] = useState();
   const forceUpdate = () =>  update({});
+  const debounceRender = debounce(forceUpdate, 250);
   const svgRef = useRef(null);
 
   useEffect(() => {
@@ -109,7 +111,7 @@ const Chart = (props) => {
   })
   
   useLayoutEffect(() => {
-    window.onresize = forceUpdate;
+    window.onresize = debounceRender;
 
     //This function will get called before the hook unmounts
     return () => window.onresize = null;
