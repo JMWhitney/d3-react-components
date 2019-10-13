@@ -10,10 +10,10 @@ import {
   scaleTime,
   event,
 } from 'd3';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useLayoutEffect, useEffect, useRef } from 'react';
 import propTypes from 'prop-types';
 
-const renderChart = (svgRef, data, forceUpdate) => {
+const renderChart = (svgRef, data) => {
   try {
     select(svgRef.firstChild).remove()
     selectAll(`.chart_tooltip`).remove()
@@ -23,7 +23,6 @@ const renderChart = (svgRef, data, forceUpdate) => {
   }
 
   const svg = select(svgRef);
-  console.log(svgRef);
   let width = svg.node().getBoundingClientRect().width;
   let height = svg.node().getBoundingClientRect().height;
   const margin = { top: 20, right: 20, bottom: 30, left: 30 };
@@ -97,24 +96,27 @@ const renderChart = (svgRef, data, forceUpdate) => {
   container.append('g')
     .call(yAxis);
 
-  // select(svgRef).on(
-  //   'resize.' + , 
-  //   forceUpdate
-  // );
-
 }
   
 const Chart = (props) => {
   
-  const [, updateState] = useState();
-  const forceUpdate = () => updateState({});
+  const [, update] = useState();
+  const forceUpdate = () =>  update({});
   const svgRef = useRef(null);
 
-  console.log(props.data);
+  useEffect(() => {
+    renderChart(svgRef.current, props.data)
+  })
   
-  useEffect(() => renderChart(svgRef.current, props.data, props._id, forceUpdate))
+  useLayoutEffect(() => {
+    window.onresize = forceUpdate;
 
-  return <svg className="svg-content-responsive" height="100%" width="100%" ref={svgRef}></svg>
+    //This function will get called before the hook unmounts
+    return () => window.onresize = null;
+    
+  }, [props.data]);
+
+  return <svg className="svg-content-responsive" ref={svgRef} height="100%" width="100%"></svg>
 }
 
 Chart.propTypes = {
