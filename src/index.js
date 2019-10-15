@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 // import BarChart from './BarChart';
 // import LineChart from './LineChart';
-import Chart from './Chart';
+import BarChart from './BarChart';
 
 const randomValues = () => {
   return {
@@ -32,7 +32,7 @@ const Layout = () => {
   return ( 
     <div id="charts">
       <div style={{display: "flex", height: "50vh", width:"50vw"}}>
-        <Chart data={data} />
+        <BarChart data={data} />
       </div>
       <button onClick={() => setData(randomValues)}>New Values</button> 
     </div> 

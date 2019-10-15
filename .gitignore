@@ -19,6 +19,7 @@
 .env.production.local
 data.csv
 LineChart.js
+ReferenceChart.js
 
 npm-debug.log*
 yarn-debug.log*
