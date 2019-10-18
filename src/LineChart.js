@@ -12,14 +12,15 @@ import {
   event,
   line,
   area,
-  curveMonotoneX
+  curveMonotoneX,
+  bisector,
+  mouse
 } from 'd3';
 import React, { useEffect } from 'react';
 import propTypes from 'prop-types';
 import Chart from './Chart';
 
 const renderChart = (svgRef, data) => {
-  console.log(data);
   try {
     select(svgRef.firstChild).remove()
     selectAll(`.chart_tooltip`).remove()
@@ -35,7 +36,8 @@ const renderChart = (svgRef, data) => {
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
   const maxY = max(data, (d) => d.y);
-  const minY = min(data, (d) => d.y)
+  const minY = min(data, (d) => d.y);
+  const bisect = bisector((d) => d.x).left;
 
   const xScale = 
   scaleLinear()
@@ -60,8 +62,8 @@ const renderChart = (svgRef, data) => {
 
   const curve = 
   area()
-    .x( (d, i) => xScale(i))
-    .y1( (d) => yScale(d.y))
+    .x((d, i) => xScale(i))
+    .y1((d) => yScale(d.y))
     .y0( yScale(0) )
     .curve(curveMonotoneX);
   
@@ -69,6 +71,7 @@ const renderChart = (svgRef, data) => {
   svg.append('g')
     .attr('transform', `translate(${margin.left}, ${margin.top})`);
 
+  // Draw graph curve
   container.append('svg')
     .attr('width', innerWidth)
     .attr('height', innerHeight)
@@ -77,6 +80,8 @@ const renderChart = (svgRef, data) => {
       .attr('class', 'line')
       .attr('d', curve)
     
+  // Draw dots
+  const dots =
   container.selectAll('.dot')
     .data(data)
   .enter().append('circle')
@@ -84,6 +89,8 @@ const renderChart = (svgRef, data) => {
     .attr('cx', (d, i) => xScale(i))
     .attr('cy', (d) => yScale(d.y))
     .attr('r', 3)
+    .attr('width', 8)
+    .attr('height', 8)
     
   const xLabel = 
   container.append('g')
@@ -94,6 +101,55 @@ const renderChart = (svgRef, data) => {
   container.append('g')
     .call(yAxis);
 
+  const focus = 
+  container.append('g')
+    .append('circle')
+    .style('fill', 'none')
+    .attr('stroke', 'black')
+    .attr('r', 8.5)
+    .style('opacity', 0);
+
+  const focusText = 
+  container.append('g')
+    .append('text')
+    .style('opacity', 0)
+    .attr('text-anchor', 'left')
+    .attr('alignment-baseline', 'middle');
+
+  const focusArea =
+  container.append('rect')
+    .style('fill', 'none')
+    .style('pointer-events', 'all')
+    .attr('width', innerWidth)
+    .attr('height', innerHeight)
+    .on('mouseover', mouseover)
+    .on('mousemove', mousemove)
+    .on('mouseout', mouseout);
+
+  function mouseover() {
+    focus.style("opacity", 1)
+    focusText.style("opacity",1)
+  }
+
+  function mousemove() {
+    // recover coordinate we need
+    const i = parseInt(xScale.invert(mouse(this)[0]));
+    const selectedData = data[i];
+    
+    console.log(parseInt(i));
+
+    focus
+      .attr("cx", xScale(i))
+      .attr("cy", yScale(selectedData.y))
+    focusText
+      .html(selectedData.y)
+      .attr("x", xScale(i)+15)
+      .attr("y", yScale(selectedData.y))
+    }
+  function mouseout() {
+    focus.style("opacity", 0)
+    focusText.style("opacity", 0)
+  }
 }
 
 const LineChart = (props) => <Chart data={props.data} renderChart={renderChart} />
