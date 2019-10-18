@@ -25,10 +25,6 @@ const Chart = (props) => {
 }
 
 Chart.propTypes = {
-  data: propTypes.shape({
-    x: propTypes.array.isRequired,
-    y: propTypes.array.isRequired
-  }),
   renderChart: propTypes.func,
 }
 

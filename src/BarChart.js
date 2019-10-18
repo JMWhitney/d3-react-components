@@ -51,18 +51,9 @@ const renderChart = (svgRef, data) => {
 
   const yAxis = axisLeft(yScale);
 
-  const tooltip = 
-  select('body')
-    .append('div')
-    .attr('class', 'chart_tooltip')
-    .style('position', 'absolute')
-    .style('padding', '0 10px')
-    .style('background', 'white')
-    .style('opacity', 0);
-
   const container =
   svg.append('g').attr('transform', `translate(${margin.left}, ${margin.top})`)
-    
+
   const entries = 
   container.selectAll('rect').data(data.y)
       .enter().append('rect')
@@ -75,16 +66,12 @@ const renderChart = (svgRef, data) => {
   entries.on('mouseover', function(d) {
     tooltip.transition().duration(200)
       .style('opacity', .9)
-    tooltip.html(
-        '<div style="font-size: 1rem; font-weight: bold;">'
-          + d + 
-        '</div>'
-      )
-      .style('left', (event.pageX -35) + 'px')
-      .style('top', (event.pageY -30) + 'px')
+    tooltip.text(d)
+      .attr('x', xScale(d) <= innerWidth/2 ? event.x + 50 : event.x - 50 )
+      .attr('y', event.y)
   })
   .on('mouseout', function(d) {
-    tooltip.html('');
+    tooltip.text(null);
   });
   
   const xLabel = 
@@ -95,6 +82,13 @@ const renderChart = (svgRef, data) => {
   const yLabel = 
   container.append('g')
     .call(yAxis);
+
+  const tooltip = 
+  container
+    .append('text')
+    .attr('class', 'chart_tooltip')
+    .attr('fill', 'white')
+    .style('opacity', 0);
 }
 
 const BarChart = (props) => <Chart data={props.data} renderChart={renderChart} />

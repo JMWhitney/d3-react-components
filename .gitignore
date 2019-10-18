@@ -18,7 +18,6 @@
 .env.test.local
 .env.production.local
 data.csv
-LineChart.js
 ReferenceChart.js
 
 npm-debug.log*

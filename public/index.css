@@ -12,3 +12,29 @@ text {
   stroke: purple;
   stroke-width: 2;
 }
+
+line {
+  fill: black;
+  stroke: #ffab00;
+  stroke-width: 3;
+}
+
+path {
+  opacity: 0.5;
+}
+
+.overlay {
+fill: none;
+pointer-events: all;
+}
+
+/* Style the dots by assigning a fill and stroke */
+.dot {
+  fill: #ffab00;
+  stroke: #fff;
+}
+
+.focus circle {
+fill: none;
+stroke: steelblue;
+}

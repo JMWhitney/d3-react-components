@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
-// import BarChart from './BarChart';
-// import LineChart from './LineChart';
+import LineChart from './LineChart';
 import BarChart from './BarChart';
 
-const randomValues = () => {
+const randomArrayData = () => {
   return {
     y: (() => {
       let y = []
@@ -25,16 +24,36 @@ const randomValues = () => {
   }
 }
 
+const randomCSVData = () => {
+  let csv = [];
+  // Initial Value
+  csv.push({
+    x: new Date(),
+    y: 50 + Math.random() * 40,
+  })
+
+  // Random Value pairs
+  for(let i = 1; i < 50; i++) {
+    csv.push({
+      x: new Date( csv[i-1].x.getTime() + (24 * 60 * 60 * 1000)),
+      y: csv[i-1].y + (Math.random() - 0.5) * 10,
+    })
+  }
+  return csv;
+}
+
 const Layout = () => {
   // Dummy data to render with charts
-  const [data, setData] = useState(randomValues())
+  const [arrayData, setArrayData] = useState(randomArrayData())
+  const [CSVData, setCSVData] = useState(randomCSVData())
 
   return ( 
     <div id="charts">
       <div style={{display: "flex", height: "50vh", width:"50vw"}}>
-        <BarChart data={data} />
+        {/* <BarChart data={arrayData} /> */}
+        <LineChart data={CSVData} />
       </div>
-      <button onClick={() => setData(randomValues)}>New Values</button> 
+      <button onClick={() => { setArrayData(randomArrayData); setCSVData(randomCSVData)}}>New Values</button> 
     </div> 
   );
 }
