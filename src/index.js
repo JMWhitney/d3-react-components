@@ -49,7 +49,7 @@ const Layout = () => {
 
   return ( 
     <div id="charts">
-      <div style={{display: "flex", height: "50vh", width:"50vw"}}>
+      <div style={{display: "flex", height: "50vh", width:"100vw"}}>
         {/* <BarChart data={arrayData} /> */}
         <LineChart data={CSVData} />
       </div>

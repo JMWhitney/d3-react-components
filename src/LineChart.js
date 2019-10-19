@@ -37,7 +37,6 @@ const renderChart = (svgRef, data) => {
   const innerHeight = height - margin.top - margin.bottom;
   const maxY = max(data, (d) => d.y);
   const minY = min(data, (d) => d.y);
-  const bisect = bisector((d) => d.x).left;
 
   const xScale = 
   scaleLinear()
@@ -101,21 +100,34 @@ const renderChart = (svgRef, data) => {
   container.append('g')
     .call(yAxis);
 
-  const focus = 
+  const toolTip = 
   container.append('g')
-    .append('circle')
-    .style('fill', 'none')
+  .attr('opacity', 0);
+  
+  // const toolTipLines = 
+  // toolTip.append('rect')
+  //   .attr('stroke', 'black')
+  //   .attr('fill', 'none');
+
+  const toolTipCircle =
+  toolTip.append('circle')
+  .style('fill', 'none')
+  .attr('stroke', 'black')
+  .attr('r', 8.5)
+
+  const toolTipRect = 
+  toolTip.append('rect')
+    .attr('fill', 'white')
+    .attr('height', 27)
     .attr('stroke', 'black')
-    .attr('r', 8.5)
-    .style('opacity', 0);
-
-  const focusText = 
-  container.append('g')
-    .append('text')
-    .style('opacity', 0)
+    .attr('opacity', 0.8);
+  
+  const toolTipText =   
+  toolTip.append('text')
     .attr('text-anchor', 'left')
-    .attr('alignment-baseline', 'middle');
-
+    .attr('alignment-baseline', 'middle')
+  
+  
   const focusArea =
   container.append('rect')
     .style('fill', 'none')
@@ -127,28 +139,40 @@ const renderChart = (svgRef, data) => {
     .on('mouseout', mouseout);
 
   function mouseover() {
-    focus.style("opacity", 1)
-    focusText.style("opacity",1)
+    toolTip.style("opacity", 1)
   }
 
   function mousemove() {
-    // recover coordinate we need
     const i = parseInt(xScale.invert(mouse(this)[0]));
     const selectedData = data[i];
-    
-    console.log(parseInt(i));
+    const xPos = xScale(i);
+    const yPos = yScale(selectedData.y);
+    const width = toolTipText._groups[0][0].textLength.baseVal.value
+    const widthOffset = 
+      xPos < innerWidth/2 ? 15 : -15 - width
 
-    focus
-      .attr("cx", xScale(i))
-      .attr("cy", yScale(selectedData.y))
-    focusText
-      .html(selectedData.y)
-      .attr("x", xScale(i)+15)
-      .attr("y", yScale(selectedData.y))
-    }
+    toolTip
+      // .transition().duration(75)
+      .attr('transform', `translate(${xPos}, ${yPos})`)
+
+    toolTipRect
+      .attr('width', width + 10)
+      .attr('x', widthOffset)
+      .attr('y', -1 * toolTipRect.attr('height')/2)
+
+    toolTipText
+      .text(selectedData.y)
+      .attr('x', widthOffset);
+
+    // toolTipLines
+    //   .attr('width', xPos)
+    //   .attr('x', -1 * xPos)
+    //   .attr('height', innerHeight - yPos)
+
+  }
+
   function mouseout() {
-    focus.style("opacity", 0)
-    focusText.style("opacity", 0)
+    toolTip.style("opacity", 0)
   }
 }
 
