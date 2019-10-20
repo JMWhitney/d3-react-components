@@ -2,7 +2,6 @@ import {
   select,
   selectAll,
   scaleLinear,
-  scaleBand,
   max,
   min,
   axisLeft,
@@ -13,17 +12,16 @@ import {
   line,
   area,
   curveMonotoneX,
-  bisector,
-  mouse
+  mouse,
+  brushX
 } from 'd3';
-import React, { useEffect } from 'react';
+import React from 'react';
 import propTypes from 'prop-types';
 import Chart from './Chart';
 
 const renderChart = (svgRef, data) => {
   try {
     select(svgRef.firstChild).remove()
-    selectAll(`.chart_tooltip`).remove()
   } 
   catch (error) {
     console.error(error)
@@ -68,9 +66,12 @@ const renderChart = (svgRef, data) => {
   
   const container = 
   svg.append('g')
-    .attr('transform', `translate(${margin.left}, ${margin.top})`);
+    .attr('transform', `translate(${margin.left}, ${margin.top})`)
+    .classed('chart-container', true);
+
 
   // Draw graph curve
+  const graph = 
   container.append('svg')
     .attr('width', innerWidth)
     .attr('height', innerHeight)
@@ -78,6 +79,9 @@ const renderChart = (svgRef, data) => {
       .datum(data)
       .attr('class', 'line')
       .attr('d', curve)
+      .style('fill', 'lightblue')
+      .style('stroke', 'black')
+      .classed('chart-curve', true);
     
   // Draw dots
   const dots =
@@ -87,22 +91,24 @@ const renderChart = (svgRef, data) => {
     .attr('class', 'dot')
     .attr('cx', (d, i) => xScale(i))
     .attr('cy', (d) => yScale(d.y))
-    .attr('r', 3)
-    .attr('width', 8)
-    .attr('height', 8)
-    
+    .attr('r', 4)
+    .style('fill', 'steelblue')
+  
   const xLabel = 
   container.append('g')
     .attr('transform', `translate(0,${innerHeight})`)
+    .classed('chart-x-label', true)
     .call(xAxis);
 
   const yLabel = 
   container.append('g')
+    .classed('chart-y-label', true)
     .call(yAxis);
 
   const toolTip = 
   container.append('g')
-  .attr('opacity', 0);
+  .attr('opacity', 0)
+  .classed('chart-tool-tip', true);
   
   // const toolTipLines = 
   // toolTip.append('rect')
@@ -114,22 +120,25 @@ const renderChart = (svgRef, data) => {
   .style('fill', 'none')
   .attr('stroke', 'black')
   .attr('r', 8.5)
+  .classed('chart-tool-tip-circle', true);
 
   const toolTipRect = 
   toolTip.append('rect')
     .attr('fill', 'white')
     .attr('height', 27)
     .attr('stroke', 'black')
-    .attr('opacity', 0.8);
+    .attr('opacity', 0.8)
+    .classed('chart-tool-tip-background', true);
   
   const toolTipText =   
   toolTip.append('text')
     .attr('text-anchor', 'left')
     .attr('alignment-baseline', 'middle')
-  
+    .style('fill', 'black')
+    .classed('chart-tool-tip-text', true)
   
   const focusArea =
-  container.append('rect')
+  container
     .style('fill', 'none')
     .style('pointer-events', 'all')
     .attr('width', innerWidth)
@@ -168,12 +177,18 @@ const renderChart = (svgRef, data) => {
     //   .attr('width', xPos)
     //   .attr('x', -1 * xPos)
     //   .attr('height', innerHeight - yPos)
-
   }
 
   function mouseout() {
     toolTip.style("opacity", 0)
   }
+
+  container
+    .call(
+      brushX()
+        .extent([ [0, 0], [innerWidth, innerHeight] ])
+    )
+  
 }
 
 const LineChart = (props) => <Chart data={props.data} renderChart={renderChart} />
