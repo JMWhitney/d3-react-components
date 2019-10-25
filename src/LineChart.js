@@ -13,7 +13,10 @@ import {
   area,
   curveMonotoneX,
   mouse,
-  brushX
+  brushX,
+  zoom,
+  zoomIdentity,
+  zoomTransform
 } from 'd3';
 import React from 'react';
 import propTypes from 'prop-types';
@@ -57,6 +60,13 @@ const renderChart = (svgRef, data) => {
 
   const yAxis = axisLeft(yScale);
 
+  const d3Zoom = 
+    zoom()
+    .scaleExtent([1, Infinity])
+    .translateExtent([[0, 0], [innerWidth, innerHeight]])
+    .extent([[0, 0], [innerWidth, innerHeight]])
+    .on("zoom", zoomed);
+
   const curve = 
   area()
     .x((d, i) => xScale(i))
@@ -75,7 +85,11 @@ const renderChart = (svgRef, data) => {
   container.append('svg')
     .attr('width', innerWidth)
     .attr('height', innerHeight)
-    .append('path')
+    .append('g')
+      .classed('chart-graph-container', true)
+
+  const plot = 
+    graph.append('path')
       .datum(data)
       .attr('class', 'line')
       .attr('d', curve)
@@ -85,7 +99,7 @@ const renderChart = (svgRef, data) => {
     
   // Draw dots
   const dots =
-  container.selectAll('.dot')
+  graph.selectAll('.dot')
     .data(data)
   .enter().append('circle')
     .attr('class', 'dot')
@@ -183,10 +197,34 @@ const renderChart = (svgRef, data) => {
     toolTip.style("opacity", 0)
   }
 
+  function zoomed() {
+    console.log("Zoomed");
+  }
+
+  function brushed() {
+    if(!event.selection) {
+      xScale.range([0, innerWidth]);
+      yScale.range([innerHeight, 0]);
+      graph.attr('transform', zoomIdentity.toString());
+      return;
+    } 
+    console.log(event);
+    const selectionWidth = event.selection[1] - event.selection[0];
+    const zoomFactor = innerWidth / selectionWidth;
+
+    const t = zoomTransform(graph).translate(0,0).scale(zoomFactor);
+    xScale.range([0, innerWidth * zoomFactor])
+    yScale.range([innerHeight * zoomFactor, 0])
+
+    graph.attr('transform', t.toString())
+
+  }
+
   container
     .call(
       brushX()
         .extent([ [0, 0], [innerWidth, innerHeight] ])
+        .on('end', brushed)
     )
   
 }
