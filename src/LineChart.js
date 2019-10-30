@@ -61,8 +61,8 @@ const renderChart = (svgRef, data) => {
   const yAxis = axisLeft(yScale);
 
   const d3Zoom = 
-    zoom()
-    .scaleExtent([1, Infinity])
+  zoom()
+    .scaleExtent([1, 12])
     .translateExtent([[0, 0], [innerWidth, innerHeight]])
     .extent([[0, 0], [innerWidth, innerHeight]])
     .on("zoom", zoomed);
@@ -78,7 +78,6 @@ const renderChart = (svgRef, data) => {
   svg.append('g')
     .attr('transform', `translate(${margin.left}, ${margin.top})`)
     .classed('chart-container', true);
-
 
   // Draw graph curve
   const graph = 
@@ -123,11 +122,6 @@ const renderChart = (svgRef, data) => {
   container.append('g')
   .attr('opacity', 0)
   .classed('chart-tool-tip', true);
-  
-  // const toolTipLines = 
-  // toolTip.append('rect')
-  //   .attr('stroke', 'black')
-  //   .attr('fill', 'none');
 
   const toolTipCircle =
   toolTip.append('circle')
@@ -175,7 +169,7 @@ const renderChart = (svgRef, data) => {
       xPos < innerWidth/2 ? 15 : -15 - width
 
     toolTip
-      // .transition().duration(75)
+      .transition().duration(25)
       .attr('transform', `translate(${xPos}, ${yPos})`)
 
     toolTipRect
@@ -198,25 +192,19 @@ const renderChart = (svgRef, data) => {
   }
 
   function zoomed() {
-    console.log("Zoomed");
+    const transform = event.transform;
+    graph.attr('transform', transform.toString());
+
+    const updatedXScale = transform.rescaleX(xAxisValues);
+    const updatedYScale = transform.rescaleY(yScale);
+    xAxis.scale(updatedXScale); 
+    xLabel.call(xAxis);
+
+    yAxis.scale(updatedYScale);
+    yLabel.call(yAxis);
   }
 
   function brushed() {
-    if(!event.selection) {
-      xScale.range([0, innerWidth]);
-      yScale.range([innerHeight, 0]);
-      graph.attr('transform', zoomIdentity.toString());
-      return;
-    } 
-    console.log(event);
-    const selectionWidth = event.selection[1] - event.selection[0];
-    const zoomFactor = innerWidth / selectionWidth;
-
-    const t = zoomTransform(graph).translate(0,0).scale(zoomFactor);
-    xScale.range([0, innerWidth * zoomFactor])
-    yScale.range([innerHeight * zoomFactor, 0])
-
-    graph.attr('transform', t.toString())
 
   }
 
@@ -227,6 +215,7 @@ const renderChart = (svgRef, data) => {
         .on('end', brushed)
     )
   
+  container.call(d3Zoom);
 }
 
 const LineChart = (props) => <Chart data={props.data} renderChart={renderChart} />
