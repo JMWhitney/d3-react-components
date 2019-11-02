@@ -193,15 +193,22 @@ const renderChart = (svgRef, data) => {
 
   function zoomed() {
     const transform = event.transform;
-    graph.attr('transform', transform.toString());
+    // graph.attr('transform', transform.toString());
 
     const updatedXScale = transform.rescaleX(xAxisValues);
-    const updatedYScale = transform.rescaleY(yScale);
+    // const updatedYScale = transform.rescaleY(yScale);
     xAxis.scale(updatedXScale); 
     xLabel.call(xAxis);
 
-    yAxis.scale(updatedYScale);
-    yLabel.call(yAxis);
+    // yAxis.scale(updatedYScale);
+    // yLabel.call(yAxis);
+
+    dots.attr('cx', (d, i) => updatedXScale(d.x));
+    plot.attr('d', area()
+    .x((d, i) => updatedXScale(d.x))
+    .y1((d) => yScale(d.y))
+    .y0( yScale(0) )
+    .curve(curveMonotoneX))
   }
 
   function brushed() {
@@ -228,4 +235,3 @@ LineChart.propTypes = {
 }
 
 export default LineChart;
-
