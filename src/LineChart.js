@@ -39,18 +39,29 @@ const renderChart = (svgRef, data) => {
   const maxY = max(data, (d) => d.y);
   const minY = min(data, (d) => d.y);
 
-  const xScale = 
+  const initialGeometricXScale = 
   scaleLinear()
     .domain([0, data.length -1])
     .range([0, innerWidth])
 
-  const xAxisValues = 
+  let currentGeometricXScale = 
+  scaleLinear()
+    .domain([0, data.length -1])
+    .range([0, innerWidth])
+
+  const initialSemanticXScale = 
   scaleTime()
     .domain([ data[0].x, data[data.length - 1].x ])
     .range([0, width]);
 
+  let currentTimeXScale = 
+  scaleTime()
+    .domain([ data[0].x, data[data.length - 1].x ])
+    .range([0, width]);
+
+
   const xAxis = 
-  axisBottom(xAxisValues)
+  axisBottom(initialSemanticXScale)
     .ticks(timeDay.every(parseInt(data.length / 5)));
 
   const yScale =
@@ -69,7 +80,7 @@ const renderChart = (svgRef, data) => {
 
   const curve = 
   area()
-    .x((d, i) => xScale(i))
+    .x((d, i) => initialGeometricXScale(i))
     .y1((d) => yScale(d.y))
     .y0( yScale(0) )
     .curve(curveMonotoneX);
@@ -102,7 +113,7 @@ const renderChart = (svgRef, data) => {
     .data(data)
   .enter().append('circle')
     .attr('class', 'dot')
-    .attr('cx', (d, i) => xScale(i))
+    .attr('cx', (d, i) => initialGeometricXScale(i))
     .attr('cy', (d) => yScale(d.y))
     .attr('r', 4)
     .style('fill', 'steelblue')
@@ -160,9 +171,9 @@ const renderChart = (svgRef, data) => {
   }
 
   function mousemove() {
-    const i = parseInt(xScale.invert(mouse(this)[0]));
+    const i = parseInt(currentGeometricXScale.invert(mouse(this)[0]));
     const selectedData = data[i];
-    const xPos = xScale(i);
+    const xPos = currentTimeXScale(selectedData.x);
     const yPos = yScale(selectedData.y);
     const width = toolTipText._groups[0][0].textLength.baseVal.value
     const widthOffset = 
@@ -180,11 +191,6 @@ const renderChart = (svgRef, data) => {
     toolTipText
       .text(selectedData.y)
       .attr('x', widthOffset);
-
-    // toolTipLines
-    //   .attr('width', xPos)
-    //   .attr('x', -1 * xPos)
-    //   .attr('height', innerHeight - yPos)
   }
 
   function mouseout() {
@@ -194,18 +200,20 @@ const renderChart = (svgRef, data) => {
   function zoomed() {
     const transform = event.transform;
     // graph.attr('transform', transform.toString());
+    // currentXScale = transform.rescaleX(xScale);
 
-    const updatedXScale = transform.rescaleX(xAxisValues);
+    currentGeometricXScale = transform.rescaleX(initialGeometricXScale);
+    currentTimeXScale = transform.rescaleX(initialSemanticXScale);
     // const updatedYScale = transform.rescaleY(yScale);
-    xAxis.scale(updatedXScale); 
+    xAxis.scale(currentTimeXScale); 
     xLabel.call(xAxis);
 
     // yAxis.scale(updatedYScale);
     // yLabel.call(yAxis);
 
-    dots.attr('cx', (d, i) => updatedXScale(d.x));
+    dots.attr('cx', (d, i) => currentTimeXScale(d.x));
     plot.attr('d', area()
-    .x((d, i) => updatedXScale(d.x))
+    .x((d, i) => currentTimeXScale(d.x))
     .y1((d) => yScale(d.y))
     .y0( yScale(0) )
     .curve(curveMonotoneX))
