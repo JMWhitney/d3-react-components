@@ -29,7 +29,7 @@ const renderChart = (svgRef, data) => {
   catch (error) {
     console.error(error)
   }
-
+  
   const svg = select(svgRef);
   let width = svg.node().getBoundingClientRect().width;
   let height = svg.node().getBoundingClientRect().height;
@@ -38,27 +38,29 @@ const renderChart = (svgRef, data) => {
   const innerHeight = height - margin.top - margin.bottom;
   const maxY = max(data, (d) => d.y);
   const minY = min(data, (d) => d.y);
+  
+  const d3Zoom = 
+  zoom()
+    .scaleExtent([1, 12])
+    .translateExtent([[0, 0], [innerWidth, innerHeight]])
+    .extent([[0, 0], [innerWidth, innerHeight]])
+    .on("zoom", zoomed);
 
   const initialGeometricXScale = 
   scaleLinear()
     .domain([0, data.length -1])
-    .range([0, innerWidth])
+    .range([0, innerWidth + margin.right + margin.left])
 
   let currentGeometricXScale = 
-  scaleLinear()
-    .domain([0, data.length -1])
-    .range([0, innerWidth])
+  zoomIdentity.rescaleX(initialGeometricXScale);
 
   const initialSemanticXScale = 
   scaleTime()
     .domain([ data[0].x, data[data.length - 1].x ])
     .range([0, width]);
 
-  let currentTimeXScale = 
-  scaleTime()
-    .domain([ data[0].x, data[data.length - 1].x ])
-    .range([0, width]);
-
+  let currentSemanticXScale = 
+  zoomIdentity.rescaleX(initialSemanticXScale);
 
   const xAxis = 
   axisBottom(initialSemanticXScale)
@@ -71,16 +73,9 @@ const renderChart = (svgRef, data) => {
 
   const yAxis = axisLeft(yScale);
 
-  const d3Zoom = 
-  zoom()
-    .scaleExtent([1, 12])
-    .translateExtent([[0, 0], [innerWidth, innerHeight]])
-    .extent([[0, 0], [innerWidth, innerHeight]])
-    .on("zoom", zoomed);
-
   const curve = 
   area()
-    .x((d, i) => initialGeometricXScale(i))
+    .x((d, i) => initialSemanticXScale(d.x))
     .y1((d) => yScale(d.y))
     .y0( yScale(0) )
     .curve(curveMonotoneX);
@@ -113,7 +108,7 @@ const renderChart = (svgRef, data) => {
     .data(data)
   .enter().append('circle')
     .attr('class', 'dot')
-    .attr('cx', (d, i) => initialGeometricXScale(i))
+    .attr('cx', (d) => initialSemanticXScale(d.x))
     .attr('cy', (d) => yScale(d.y))
     .attr('r', 4)
     .style('fill', 'steelblue')
@@ -171,9 +166,9 @@ const renderChart = (svgRef, data) => {
   }
 
   function mousemove() {
-    const i = parseInt(currentGeometricXScale.invert(mouse(this)[0]));
+    const i = Math.round(currentGeometricXScale.invert(mouse(this)[0]));
     const selectedData = data[i];
-    const xPos = currentTimeXScale(selectedData.x);
+    const xPos = currentSemanticXScale(selectedData.x);
     const yPos = yScale(selectedData.y);
     const width = toolTipText._groups[0][0].textLength.baseVal.value
     const widthOffset = 
@@ -199,21 +194,14 @@ const renderChart = (svgRef, data) => {
 
   function zoomed() {
     const transform = event.transform;
-    // graph.attr('transform', transform.toString());
-    // currentXScale = transform.rescaleX(xScale);
-
     currentGeometricXScale = transform.rescaleX(initialGeometricXScale);
-    currentTimeXScale = transform.rescaleX(initialSemanticXScale);
-    // const updatedYScale = transform.rescaleY(yScale);
-    xAxis.scale(currentTimeXScale); 
+    currentSemanticXScale = transform.rescaleX(initialSemanticXScale);
+    xAxis.scale(currentSemanticXScale); 
     xLabel.call(xAxis);
 
-    // yAxis.scale(updatedYScale);
-    // yLabel.call(yAxis);
-
-    dots.attr('cx', (d, i) => currentTimeXScale(d.x));
+    dots.attr('cx', (d) => currentSemanticXScale(d.x));
     plot.attr('d', area()
-    .x((d, i) => currentTimeXScale(d.x))
+    .x((d, i) => currentSemanticXScale(d.x))
     .y1((d) => yScale(d.y))
     .y0( yScale(0) )
     .curve(curveMonotoneX))
