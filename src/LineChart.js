@@ -38,6 +38,7 @@ const renderChart = (svgRef, data) => {
   const innerHeight = height - margin.top - margin.bottom;
   const maxY = max(data, (d) => d.y);
   const minY = min(data, (d) => d.y);
+  const numTicks = parseInt(data.length / 5)
   
   const d3Zoom = 
   zoom()
@@ -64,7 +65,7 @@ const renderChart = (svgRef, data) => {
 
   const xAxis = 
   axisBottom(initialSemanticXScale)
-    .ticks(timeDay.every(parseInt(data.length / 5)));
+    .ticks(timeDay.every(numTicks));
 
   const yScale =
   scaleLinear()
@@ -193,10 +194,17 @@ const renderChart = (svgRef, data) => {
   }
 
   function zoomed() {
+    // Alias event
     const transform = event.transform;
+
+    // Update rendering information
     currentGeometricXScale = transform.rescaleX(initialGeometricXScale);
     currentSemanticXScale = transform.rescaleX(initialSemanticXScale);
-    xAxis.scale(currentSemanticXScale); 
+
+    // Rerender necessary components
+    xAxis
+      .scale(currentSemanticXScale)
+      .ticks(numTicks); 
     xLabel.call(xAxis);
 
     dots.attr('cx', (d) => currentSemanticXScale(d.x));
