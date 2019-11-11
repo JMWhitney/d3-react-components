@@ -167,14 +167,21 @@ const renderChart = (svgRef, data) => {
   }
 
   function mousemove() {
+    // Convert mouse position to data index based on the geometric scale
     const i = Math.round(currentGeometricXScale.invert(mouse(this)[0]));
-    const selectedData = data[i];
-    const xPos = currentSemanticXScale(selectedData.x);
-    const yPos = yScale(selectedData.y);
+    const selectedPoint = data[i];
+
+    // Handle out of bounds errors
+    if(!selectedPoint) return;
+    
+    // Obtain information about the location of the current point
+    const xPos = currentSemanticXScale(selectedPoint.x);
+    const yPos = yScale(selectedPoint.y);
     const width = toolTipText._groups[0][0].textLength.baseVal.value
     const widthOffset = 
       xPos < innerWidth/2 ? 15 : -15 - width
 
+    // Update the information and location of the tool tip
     toolTip
       .transition().duration(25)
       .attr('transform', `translate(${xPos}, ${yPos})`)
@@ -185,7 +192,7 @@ const renderChart = (svgRef, data) => {
       .attr('y', -1 * toolTipRect.attr('height')/2)
 
     toolTipText
-      .text(selectedData.y)
+      .text(selectedPoint.y)
       .attr('x', widthOffset);
   }
 
@@ -194,10 +201,10 @@ const renderChart = (svgRef, data) => {
   }
 
   function zoomed() {
-    // Alias event
+    // Alias the zoom transformation
     const transform = event.transform;
 
-    // Update rendering information
+    // Update chart scaling information based on the transform
     currentGeometricXScale = transform.rescaleX(initialGeometricXScale);
     currentSemanticXScale = transform.rescaleX(initialSemanticXScale);
 
