@@ -47,6 +47,13 @@ const renderChart = (svgRef, data) => {
     .extent([[0, 0], [innerWidth, innerHeight]])
     .on("zoom", zoomed);
 
+  const d3Brush = 
+  brushX()
+    .extent([ [0, 0], [innerWidth, innerHeight] ])
+    .on('end', brushed)
+
+  console.log(Object.getOwnPropertyNames(d3Brush));
+
   const initialGeometricXScale = 
   scaleLinear()
     .domain([0, data.length -1])
@@ -76,7 +83,7 @@ const renderChart = (svgRef, data) => {
 
   const curve = 
   area()
-    .x((d, i) => initialSemanticXScale(d.x))
+    .x((d) => initialSemanticXScale(d.x))
     .y1((d) => yScale(d.y))
     .y0( yScale(0) )
     .curve(curveMonotoneX);
@@ -201,6 +208,7 @@ const renderChart = (svgRef, data) => {
   }
 
   function zoomed() {
+    if(event.sourceEvent && event.sourceEvent.type === 'end') return; //ignore zoom-by-brush
     // Alias the zoom transformation
     const transform = event.transform;
 
@@ -215,7 +223,7 @@ const renderChart = (svgRef, data) => {
     xLabel.call(xAxis);
 
     dots
-      .attr('display', (d) => (currentSemanticXScale(d.x) < 0 || currentSemanticXScale(d.x) > innerWidth) ? 'none' : '')
+      // .attr('display', (d) => (currentSemanticXScale(d.x) < 0 || currentSemanticXScale(d.x) > innerWidth) ? 'none' : '')
       .attr('cx', (d) => currentSemanticXScale(d.x));
     plot
     .attr('d', area()
@@ -223,21 +231,25 @@ const renderChart = (svgRef, data) => {
       .y1((d) => yScale(d.y))
       .y0( yScale(0) )
       .curve(curveMonotoneX))
+
+    container.call(d3Brush.move, initialGeometricXScale.range().map(transform.invertX, transform));
+    
   }
 
   function brushed() {
+    if(event.sourceEvent && event.sourceEvent.type === 'zoom') return; // ignore brush-by-zoom
     const selection = event.selection;
     if(!selection) return;
-    
-    currentGeometricXScale.domain(selection.map(initialGeometricXScale.invert, initialGeometricXScale));
+
     currentSemanticXScale.domain(selection.map(initialSemanticXScale.invert, initialSemanticXScale));
+    currentGeometricXScale.domain(selection.map(initialGeometricXScale.invert, initialGeometricXScale));
 
     xAxis
       .scale(currentSemanticXScale)
       .ticks(numTicks); 
     xLabel
-    .transition().duration(1000)
-    .call(xAxis);
+      .transition().duration(1000)
+      .call(xAxis);
 
     dots
       .transition().duration(1000)
@@ -250,14 +262,15 @@ const renderChart = (svgRef, data) => {
       .y0( yScale(0) )
       .curve(curveMonotoneX))
 
+    container.call(d3Zoom.transform, zoomIdentity
+      .scale((innerWidth - margin.left - margin.right) / (selection[1] - selection[0]))
+      .translate(-selection[0], 0));
+
   }
 
+  // Attach brush and zoom behaviors
   container
-    .call(
-      brushX()
-        .extent([ [0, 0], [innerWidth, innerHeight] ])
-        .on('end', brushed)
-    )
+    .call(d3Brush)
     .call(d3Zoom);
 }
 
