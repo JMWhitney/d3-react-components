@@ -38,11 +38,11 @@ const renderChart = (svgRef, data) => {
   const innerHeight = height - margin.top - margin.bottom;
   const maxY = max(data, (d) => d.y);
   const minY = min(data, (d) => d.y);
-  const numTicks = parseInt(data.length / 5)
+  const numTicks = 10;
   
   const d3Zoom = 
   zoom()
-    .scaleExtent([1, 12])
+    .scaleExtent([1, data.length])
     .translateExtent([[0, 0], [innerWidth, innerHeight]])
     .extent([[0, 0], [innerWidth, innerHeight]])
     .on("zoom", zoomed);
@@ -53,7 +53,7 @@ const renderChart = (svgRef, data) => {
     .range([0, innerWidth + margin.right + margin.left])
 
   let currentGeometricXScale = 
-  zoomIdentity.rescaleX(initialGeometricXScale);
+  initialGeometricXScale.copy();
 
   const initialSemanticXScale = 
   scaleTime()
@@ -61,7 +61,7 @@ const renderChart = (svgRef, data) => {
     .range([0, width]);
 
   let currentSemanticXScale = 
-  zoomIdentity.rescaleX(initialSemanticXScale);
+  initialSemanticXScale.copy();
 
   const xAxis = 
   axisBottom(initialSemanticXScale)
@@ -214,15 +214,41 @@ const renderChart = (svgRef, data) => {
       .ticks(numTicks); 
     xLabel.call(xAxis);
 
-    dots.attr('cx', (d) => currentSemanticXScale(d.x));
-    plot.attr('d', area()
-    .x((d, i) => currentSemanticXScale(d.x))
-    .y1((d) => yScale(d.y))
-    .y0( yScale(0) )
-    .curve(curveMonotoneX))
+    dots
+      .attr('display', (d) => (currentSemanticXScale(d.x) < 0 || currentSemanticXScale(d.x) > innerWidth) ? 'none' : '')
+      .attr('cx', (d) => currentSemanticXScale(d.x));
+    plot
+    .attr('d', area()
+      .x((d) => currentSemanticXScale(d.x))
+      .y1((d) => yScale(d.y))
+      .y0( yScale(0) )
+      .curve(curveMonotoneX))
   }
 
   function brushed() {
+    const selection = event.selection;
+    if(!selection) return;
+    
+    currentGeometricXScale.domain(selection.map(initialGeometricXScale.invert, initialGeometricXScale));
+    currentSemanticXScale.domain(selection.map(initialSemanticXScale.invert, initialSemanticXScale));
+
+    xAxis
+      .scale(currentSemanticXScale)
+      .ticks(numTicks); 
+    xLabel
+    .transition().duration(1000)
+    .call(xAxis);
+
+    dots
+      .transition().duration(1000)
+      .attr('cx', (d) => currentSemanticXScale(d.x));
+    plot
+    .transition().duration(1000)
+    .attr('d', area()
+      .x((d) => currentSemanticXScale(d.x))
+      .y1((d) => yScale(d.y))
+      .y0( yScale(0) )
+      .curve(curveMonotoneX))
 
   }
 
@@ -232,8 +258,7 @@ const renderChart = (svgRef, data) => {
         .extent([ [0, 0], [innerWidth, innerHeight] ])
         .on('end', brushed)
     )
-  
-  container.call(d3Zoom);
+    .call(d3Zoom);
 }
 
 const LineChart = (props) => <Chart data={props.data} renderChart={renderChart} />
@@ -243,6 +268,7 @@ LineChart.propTypes = {
     x: propTypes.object,
     y: propTypes.number
   })),
+
 }
 
 export default LineChart;

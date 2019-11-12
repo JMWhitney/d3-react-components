@@ -24,16 +24,16 @@ const randomArrayData = () => {
   }
 }
 
-const randomCSVData = () => {
+const randomCSVData = (numPoints) => {
   let csv = [];
   // Initial Value
   csv.push({
     x: new Date(),
-    y: 50 + Math.random() * 40,
+    y: 100 + Math.random() * 40,
   })
 
   // Random Value pairs
-  for(let i = 1; i < 50; i++) {
+  for(let i = 1; i < numPoints; i++) {
     csv.push({
       x: new Date( csv[i-1].x.getTime() + (24 * 60 * 60 * 1000)),
       y: csv[i-1].y + (Math.random() - 0.5) * 10,
@@ -45,7 +45,7 @@ const randomCSVData = () => {
 const Layout = () => {
   // Dummy data to render with charts
   const [arrayData, setArrayData] = useState(randomArrayData())
-  const [CSVData, setCSVData] = useState(randomCSVData())
+  const [CSVData, setCSVData] = useState(randomCSVData(365))
 
   return ( 
     <div id="charts">
@@ -53,7 +53,7 @@ const Layout = () => {
         {/* <BarChart data={arrayData} /> */}
         <LineChart data={CSVData} />
       </div>
-      <button onClick={() => { setArrayData(randomArrayData); setCSVData(randomCSVData)}}>New Values</button> 
+      <button onClick={() => { setArrayData(randomArrayData); setCSVData(randomCSVData(3650))}}>New Values</button> 
     </div> 
   );
 }
