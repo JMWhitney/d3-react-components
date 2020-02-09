@@ -53,7 +53,7 @@ const Layout = () => {
         {/* <BarChart data={arrayData} /> */}
         <LineChart data={CSVData} />
       </div>
-      <button onClick={() => { setArrayData(randomArrayData); setCSVData(randomCSVData(3650))}}>New Values</button> 
+      <button onClick={() => { setArrayData(randomArrayData); setCSVData(randomCSVData(365))}}>New Values</button> 
     </div> 
   );
 }
